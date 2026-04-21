@@ -11,6 +11,18 @@ define(['jquery'], function($) {
         var codeFieldsGroupId = null;
         var CODE_FIELDS_GROUP_NAME = 'Коды ATI';
         var leadFieldValues = {};
+        var saveTimer = null;
+
+        var SHARED_CONTAINER_ID = 'zurus-widget-container';
+        var SHARED_SUBMENU_ID = 'zurus-widget-submenu';
+        var ATP_CLIENT_ID = 'atp-client';
+        var ATP_CLIENT_SUBMENU_ID = 'atp-client-submenu';
+        var ATI_WIDGET_ID = 'ati-cargo';
+        var EVENT_NS = '.atiWidget';
+
+        function escapeSelector(str) {
+            return String(str).replace(/["\\]/g, '\\$&');
+        }
 
         // Маппинг полей для отправки в ATI
         var CARGO_FIELD_MAPPING = {
@@ -167,10 +179,9 @@ define(['jquery'], function($) {
                     return true;
                 }
 
-                // Загружаем поля
-                setTimeout(function() {
+                waitForCardFields(function() {
                     loadCustomFieldsAndReplace();
-                }, 500);
+                });
 
                 // Рендерим кнопку отправки в правой колонке
                 waitForWidgetContainer(function() {
@@ -189,8 +200,7 @@ define(['jquery'], function($) {
                 var settings = self.get_settings();
                 var lang = self.i18n('userLang');
 
-                // Обработчик ввода для автокомплита
-                $(document).on('input', '.ati-field__input[data-field-type="autocomplete"]', function() {
+                $(document).on('input' + EVENT_NS, '.ati-field__input[data-field-type="autocomplete"]', function() {
                     var $input = $(this);
                     var fieldId = $input.data('field-id');
                     var fieldName = $input.data('field-name');
@@ -224,8 +234,7 @@ define(['jquery'], function($) {
                     }, 300);
                 });
 
-                // Обработчик клика для select/multiselect полей
-                $(document).on('click', '.ati-field__input[data-field-type="select"], .ati-field__input[data-field-type="multiselect"]', function() {
+                $(document).on('click' + EVENT_NS, '.ati-field__input[data-field-type="select"], .ati-field__input[data-field-type="multiselect"]', function() {
                     var $input = $(this);
                     var fieldId = $input.data('field-id');
                     var fieldName = $input.data('field-name');
@@ -270,8 +279,7 @@ define(['jquery'], function($) {
                         });
                 });
 
-                // Клик по элементу списка
-                $(document).on('click', '.ati-field__item', function(e) {
+                $(document).on('click' + EVENT_NS, '.ati-field__item', function(e) {
                     e.stopPropagation();
                     var $item = $(this);
                     var name = $item.data('name');
@@ -310,8 +318,7 @@ define(['jquery'], function($) {
                     }
                 });
 
-                // Удаление тега
-                $(document).on('click', '.ati-field__tag-remove', function(e) {
+                $(document).on('click' + EVENT_NS, '.ati-field__tag-remove', function(e) {
                     e.stopPropagation();
                     var $tag = $(this).closest('.ati-field__tag');
                     var $container = $tag.closest('.ati-field');
@@ -326,7 +333,7 @@ define(['jquery'], function($) {
 
                         // Обновляем чекбокс в dropdown если он открыт
                         var $dropdown = $container.find('.ati-field__dropdown');
-                        var $item = $dropdown.find('.ati-field__item[data-code="' + code + '"]');
+                        var $item = $dropdown.find('.ati-field__item').filter(function() { return String($(this).data('code')) === code; });
                         if ($item.length) {
                             updateItemCheckbox($item, false);
                         }
@@ -336,15 +343,13 @@ define(['jquery'], function($) {
                     }
                 });
 
-                // Закрытие dropdown при клике вне
-                $(document).on('click', function(e) {
+                $(document).on('click' + EVENT_NS + '_outside', function(e) {
                     if (!$(e.target).closest('.ati-field').length) {
                         $('.ati-field__dropdown').hide();
                     }
                 });
 
-                // Фокус на autocomplete input
-                $(document).on('focus', '.ati-field__input[data-field-type="autocomplete"]', function() {
+                $(document).on('focus' + EVENT_NS, '.ati-field__input[data-field-type="autocomplete"]', function() {
                     var $dropdown = $(this).siblings('.ati-field__dropdown');
                     if ($dropdown.children().length > 0) {
                         $dropdown.show();
@@ -358,6 +363,9 @@ define(['jquery'], function($) {
             onSave: function() { return true; },
 
             destroy: function() {
+                $(document).off(EVENT_NS).off(EVENT_NS + '_outside');
+                if (saveTimer) clearTimeout(saveTimer);
+
                 processedFields.forEach(function(fieldId) {
                     $('[data-field-id="' + fieldId + '"]').not('.ati-field').show();
                     $('.ati-field[data-field-id="' + fieldId + '"]').remove();
@@ -581,7 +589,7 @@ define(['jquery'], function($) {
         function getFieldValue(fieldId, $field) {
             var apiValue = fieldIdToValue[parseInt(fieldId)];
 
-            if (apiValue) {
+            if (apiValue !== undefined && apiValue !== null) {
                 if (typeof apiValue === 'string') {
                     return apiValue;
                 } else if (apiValue && typeof apiValue === 'object') {
@@ -908,31 +916,22 @@ define(['jquery'], function($) {
                 var isSelected = selectedCodes.indexOf(String(item.code)) >= 0;
                 var bgColor = isSelected ? '#e3f2fd' : '#fff';
 
-                var html = '<div class="ati-field__item" ' +
-                    'data-name="' + escapeHtml(item.name) + '" ' +
-                    'data-code="' + escapeHtml(String(item.code)) + '" ' +
-                    'data-field-id="' + fieldId + '" ' +
-                    'data-field-name="' + escapeHtml(fieldName) + '" ' +
-                    'data-field-type="' + fieldType + '" ' +
-                    'style="padding:10px; cursor:pointer; border-bottom:1px solid #eee; font-size:13px; background:' + bgColor + ';">';
+                var $item = $('<div class="ati-field__item"></div>')
+                    .data({ name: item.name, code: item.code, 'field-id': fieldId, 'field-name': fieldName, 'field-type': fieldType, selected: isSelected })
+                    .attr('style', 'padding:10px; cursor:pointer; border-bottom:1px solid #eee; font-size:13px; background:' + bgColor + ';');
 
                 if (fieldType === 'multiselect') {
                     var checkStyle = isSelected
                         ? 'background:#1976d2; border-color:#1976d2;'
                         : 'background:#fff; border-color:#ccc;';
-                    html += '<span style="display:inline-block; width:16px; height:16px; border:2px solid; border-radius:3px; margin-right:10px; vertical-align:middle; ' + checkStyle + '"></span>';
+                    $item.append('<span style="display:inline-block; width:16px; height:16px; border:2px solid; border-radius:3px; margin-right:10px; vertical-align:middle; ' + checkStyle + '"></span>');
                 }
 
-                html += '<div style="font-weight:500; display:inline;">' + escapeHtml(item.name) + '</div>';
+                $item.append($('<div style="font-weight:500; display:inline;"></div>').text(item.name));
 
                 if (item.subtitle) {
-                    html += '<div style="font-size:11px; color:#999; margin-top:2px;">' + escapeHtml(item.subtitle) + '</div>';
+                    $item.append($('<div style="font-size:11px; color:#999; margin-top:2px;"></div>').text(item.subtitle));
                 }
-
-                html += '</div>';
-
-                var $item = $(html);
-                $item.data('selected', isSelected);
 
                 // Hover эффект (динамический на основе текущего состояния)
                 $item.hover(
@@ -1000,11 +999,13 @@ define(['jquery'], function($) {
         }
 
         function saveMultiselectFields(fieldId, fieldName) {
-            var selected = multiselectValues[fieldId] || [];
-            var names = selected.map(function(v) { return v.name; }).join(', ');
-            var codes = selected.map(function(v) { return String(v.code); }).join(',');
-
-            saveFields(fieldId, fieldName, names, codes, true);
+            if (saveTimer) clearTimeout(saveTimer);
+            saveTimer = setTimeout(function() {
+                var selected = multiselectValues[fieldId] || [];
+                var names = selected.map(function(v) { return v.name; }).join(', ');
+                var codes = selected.map(function(v) { return String(v.code); }).join(',');
+                saveFields(fieldId, fieldName, names, codes, true);
+            }, 400);
         }
 
         // Обновляем скрытое поле для валидации и показываем панель сохранения
@@ -1079,6 +1080,19 @@ define(['jquery'], function($) {
 
         // === Функции для отправки в ATI ===
 
+        function waitForCardFields(callback, attempts) {
+            attempts = attempts || 0;
+            if ($('.linked-form__field').length) {
+                callback();
+                return;
+            }
+            if (attempts < 30) {
+                setTimeout(function() {
+                    waitForCardFields(callback, attempts + 1);
+                }, 200);
+            }
+        }
+
         function waitForWidgetContainer(callback, attempts) {
             attempts = attempts || 0;
 
@@ -1097,12 +1111,6 @@ define(['jquery'], function($) {
                 }, 200);
             }
         }
-
-        var SHARED_CONTAINER_ID = 'zurus-widget-container';
-        var SHARED_SUBMENU_ID = 'zurus-widget-submenu';
-        var ATP_CLIENT_ID = 'atp-client';
-        var ATP_CLIENT_SUBMENU_ID = 'atp-client-submenu';
-        var ATI_WIDGET_ID = 'ati-cargo';
 
         function ensureZurusContainer($widgetsContainer) {
             var $container = $('#' + SHARED_CONTAINER_ID);
@@ -1442,8 +1450,6 @@ define(['jquery'], function($) {
 
             var url = settings.api_url.replace(/\/$/, '') + '/v2/cargos';
 
-            console.log('[ATI] Отправка payload:', JSON.stringify(payload, null, 2));
-
             $.ajax({
                 url: url,
                 method: 'POST',
@@ -1536,9 +1542,8 @@ define(['jquery'], function($) {
                 if (errorFieldId && errorMessage) {
                     // Записываем в поле ошибки только если есть сообщение
                     var errorValue = String(errorMessage);
-                    // Ограничение amoCRM: максимум 256 символов для текстового поля
-                    if (errorValue.length > 250) {
-                        errorValue = errorValue.substring(0, 247) + '...';
+                    if (errorValue.length > 4000) {
+                        errorValue = errorValue.substring(0, 3997) + '...';
                     }
                     customFields.push({
                         field_id: errorFieldId,
