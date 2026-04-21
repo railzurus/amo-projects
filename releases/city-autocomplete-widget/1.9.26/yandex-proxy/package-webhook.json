@@ -1,0 +1,6 @@
+{
+  "name": "ati-webhook",
+  "version": "1.0.0",
+  "description": "Webhook for Digital Pipeline - ATI.SU",
+  "main": "webhook.js"
+}

@@ -1,0 +1,28 @@
+{
+    "widget": {
+        "name": "City Autocomplete",
+        "description": "Виджет заменяет стандартное поле выбора города на автокомплит с подгрузкой данных из внешнего API",
+        "short_description": "Автоподбор города из API",
+        "tour_description": "Виджет автоматически находит все поля с 'Город' в названии и заменяет их на автокомплит с подгрузкой из внешнего API"
+    },
+    "settings": {
+        "api_url": "URL API (прокси)",
+        "api_key": "API ключ ATI.SU (без Bearer)",
+        "access_token": "Access Token amoCRM (для Digital Pipeline)",
+        "limit": "Лимит результатов (по умолчанию 10)"
+    },
+    "userLang": {
+        "placeholder": "Начните вводить город...",
+        "loading": "Загрузка...",
+        "noResults": "Ничего не найдено",
+        "minChars": "Введите минимум 3 символа",
+        "error": "Ошибка загрузки данных"
+    },
+    "dp": {
+        "name": "Отправить в ATI.SU",
+        "description": "Автоматически создаёт заявку на груз в ATI.SU на основе данных сделки."
+    },
+    "digitalPipeline": {
+        "name": "Отправить в ATI.SU"
+    }
+}

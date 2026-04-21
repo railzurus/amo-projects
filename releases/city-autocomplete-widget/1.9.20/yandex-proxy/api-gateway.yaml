@@ -1,0 +1,132 @@
+openapi: 3.0.0
+info:
+  title: ATI Proxy API
+  version: 1.0.0
+
+# Замените YOUR_FUNCTION_ID на ID функции прокси
+# Замените YOUR_WEBHOOK_FUNCTION_ID на ID функции вебхука
+# Замените YOUR_SERVICE_ACCOUNT_ID на ID сервисного аккаунта
+
+paths:
+  /webhook:
+    options:
+      summary: CORS preflight for webhook
+      operationId: webhookOptions
+      responses:
+        '200':
+          description: CORS headers
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+          Access-Control-Allow-Headers: 'Content-Type, Authorization, X-Access-Token, X-ATI-API-Key, X-Proxy-URL'
+
+    post:
+      operationId: webhookPost
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_WEBHOOK_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
+
+  /{path+}:
+    options:
+      summary: CORS preflight
+      operationId: corsOptions
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: CORS headers
+          headers:
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+          Access-Control-Allow-Headers: 'Content-Type, Authorization, X-Requested-With'
+          Access-Control-Max-Age: '86400'
+
+    get:
+      operationId: proxyGet
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
+
+    post:
+      operationId: proxyPost
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
+
+    patch:
+      operationId: proxyPatch
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
+
+    put:
+      operationId: proxyPut
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
+
+    delete:
+      operationId: proxyDelete
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID

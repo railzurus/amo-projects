@@ -1,0 +1,22 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Temp files
+zi1cu70X
+
+# Claude Code agents cache
+.agents/
+
+# Claude Code local settings (contains user-specific config)
+.claude/settings.local.json
+skills-lock.json
+
+# ZIP archives in widget source dirs (releases/ has versioned copies)
+city-autocomplete-widget/widget.zip
+city-autocomplete-widget/yandex-proxy.zip
+city-autocomplete-widget/yandex-webhook.zip
+atp-recalculate-widget/*.zip
+lead-copy-widget/*.zip
+task-result-widget/*.zip

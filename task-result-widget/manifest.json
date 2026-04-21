@@ -1,0 +1,30 @@
+{
+    "widget": {
+        "name": "widget.name",
+        "description": "widget.description",
+        "short_description": "widget.short_description",
+        "version": "1.0.11",
+        "interface_version": 2,
+        "init_once": true,
+        "locale": ["ru"],
+        "installation": true,
+        "support": {
+            "email": "support@example.com"
+        }
+    },
+    "locations": ["everywhere"],
+    "tour": {
+        "is_tour": true,
+        "tour_images": {
+            "ru": ["/images/tour_3.png"]
+        },
+        "tour_description": "widget.tour_description"
+    },
+    "settings": {
+        "notice": {
+            "name": "settings.notice",
+            "type": "text",
+            "required": false
+        }
+    }
+}

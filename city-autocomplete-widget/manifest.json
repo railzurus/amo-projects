@@ -1,0 +1,49 @@
+{
+    "widget": {
+        "name": "widget.name",
+        "description": "widget.description",
+        "short_description": "widget.short_description",
+        "version": "2.0.1",
+        "interface_version": 2,
+        "init_once": false,
+        "locale": ["ru"],
+        "installation": true,
+        "support": {
+            "email": "support@example.com"
+        }
+    },
+    "locations": ["lcard", "lcard-1", "digital_pipeline"],
+    "dp": {
+        "action_multiple": false,
+        "webhook_url": "https://d5d66g2ffhoktrujginp.lievo6ut.apigw.yandexcloud.net/webhook"
+    },
+    "tour": {
+        "is_tour": true,
+        "tour_images": {
+            "ru": ["/images/logo_main.png"]
+        },
+        "tour_description": "widget.tour_description"
+    },
+    "settings": {
+        "api_url": {
+            "name": "settings.api_url",
+            "type": "text",
+            "required": true
+        },
+        "api_key": {
+            "name": "settings.api_key",
+            "type": "pass",
+            "required": true
+        },
+        "access_token": {
+            "name": "settings.access_token",
+            "type": "pass",
+            "required": true
+        },
+        "limit": {
+            "name": "settings.limit",
+            "type": "text",
+            "required": false
+        }
+    }
+}
