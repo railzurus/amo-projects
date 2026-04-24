@@ -9,7 +9,7 @@
         "access_token": "Access Token amoCRM (для Digital Pipeline)"
     },
     "userLang": {
-        "btnRecalc": "Пересчитать",
+        "btnRecalc": "Пересчитать значения",
         "calculating": "Расчёт...",
         "success": "Дата платежа пересчитана",
         "errorNoDocDate": "Не заполнена «Дата отправки документов»",

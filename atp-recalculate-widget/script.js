@@ -409,7 +409,7 @@ define(['jquery'], function($) {
                     '<button class="payment-recalc-btn" style="' +
                         'width:100%; padding:10px 12px; background:#43a047; color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:13px; font-weight:500;' +
                     '">' +
-                        (lang.btnRecalc || 'Пересчитать') +
+                        (lang.btnRecalc || 'Пересчитать значения') +
                     '</button>' +
                     '<div class="payment-recalc-status" style="margin-top:8px; font-size:12px; display:none;"></div>' +
                 '</div>';
@@ -427,7 +427,7 @@ define(['jquery'], function($) {
 
                 recalcPaymentDate(
                     function(paymentDate) {
-                        $btn.prop('disabled', false).text(lang.btnRecalc || 'Пересчитать');
+                        $btn.prop('disabled', false).text(lang.btnRecalc || 'Пересчитать значения');
 
                         var formattedDate = formatDate(paymentDate);
                         $status
@@ -443,7 +443,7 @@ define(['jquery'], function($) {
                         }
                     },
                     function(errorMsg) {
-                        $btn.prop('disabled', false).text(lang.btnRecalc || 'Пересчитать');
+                        $btn.prop('disabled', false).text(lang.btnRecalc || 'Пересчитать значения');
                         $status
                             .css({ color: '#c62828', background: '#ffebee', padding: '8px 12px', borderRadius: '4px' })
                             .text(errorMsg)

@@ -12,6 +12,7 @@ define(['jquery'], function($) {
         var CODE_FIELDS_GROUP_NAME = 'Коды ATI';
         var leadFieldValues = {};
         var saveTimer = null;
+        var validationObservers = [];
 
         var SHARED_CONTAINER_ID = 'zurus-widget-container';
         var SHARED_SUBMENU_ID = 'zurus-widget-submenu';
@@ -55,6 +56,7 @@ define(['jquery'], function($) {
             'cargo_application.route.unloading.location.city_id': { field: 'Город выгрузки_код', type: 'int' },
             'cargo_application.route.loading.cargos.0.packaging.type': { field: 'Тип упаковки_код', type: 'int' },
             'cargo_application.route.loading.cargos.0.weight.quantity': { field: 'Вес тонн', type: 'float' },
+            'cargo_application.route.loading.cargos.0.volume.quantity': { field: 'Объем м3', type: 'float' },
             'cargo_application.route.loading.cargos.0.packaging.quantity': { field: 'Количество упаковок', type: 'int' },
 
             // Булевы поля (0/1 или true/false)
@@ -365,6 +367,8 @@ define(['jquery'], function($) {
             destroy: function() {
                 $(document).off(EVENT_NS).off(EVENT_NS + '_outside');
                 if (saveTimer) clearTimeout(saveTimer);
+                validationObservers.forEach(function(o) { o.disconnect(); });
+                validationObservers = [];
 
                 processedFields.forEach(function(fieldId) {
                     $('[data-field-id="' + fieldId + '"]').not('.ati-field').show();
@@ -566,6 +570,8 @@ define(['jquery'], function($) {
                 );
 
                 $field.after($customField);
+
+                watchValidation($field, $customField);
 
                 // Инициализируем мультиселект
                 if (config.type === 'multiselect') {
@@ -1076,6 +1082,41 @@ define(['jquery'], function($) {
             var div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        function watchValidation($origField, $customField) {
+            if (!window.MutationObserver) return;
+
+            var applyState = function() {
+                var isInvalid = $origField.hasClass('validation-not-valid');
+                var $input = $customField.find('.ati-field__input');
+                var $value = $customField.find('.linked-form__field__value');
+
+                if (isInvalid) {
+                    $input.css({ 'border-color': '#e53935', 'box-shadow': '0 0 0 1px rgba(229,57,53,0.2)' });
+
+                    // Переносим tooltip amoCRM к нашему полю
+                    var $tip = $origField.find('.js-validation-tip').first();
+                    if ($tip.length && !$customField.find('.js-validation-tip').length) {
+                        var $clonedTip = $tip.clone();
+                        $value.append($clonedTip);
+                    }
+                } else {
+                    $input.css({ 'border-color': '', 'box-shadow': '' });
+                    $customField.find('.js-validation-tip').remove();
+                }
+            };
+
+            var observer = new MutationObserver(applyState);
+            observer.observe($origField[0], {
+                attributes: true,
+                attributeFilter: ['class'],
+                childList: true,
+                subtree: true
+            });
+
+            validationObservers.push(observer);
+            applyState();
         }
 
         // === Функции для отправки в ATI ===
