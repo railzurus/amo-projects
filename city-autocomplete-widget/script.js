@@ -1401,11 +1401,21 @@ define(['jquery'], function($) {
                 } else if (config.type === 'bool') {
                     value = value === true || value === 1 || value === '1' || value === 'true';
                 } else if (config.type === 'date') {
-                    // Преобразуем дату в ISO формат
+                    // amoCRM хранит дату как timestamp полуночи в MSK (UTC+3).
+                    // toISOString даёт UTC, что съезжает на предыдущий день.
+                    // Форматируем как YYYY-MM-DDT00:00:00+03:00.
+                    var ms = null;
                     if (typeof value === 'number') {
-                        value = new Date(value * 1000).toISOString();
-                    } else if (typeof value === 'string' && !value.includes('T')) {
-                        value = new Date(value).toISOString();
+                        ms = value * 1000;
+                    } else if (typeof value === 'string') {
+                        ms = new Date(value).getTime();
+                    }
+                    if (ms && !isNaN(ms)) {
+                        var mskDate = new Date(ms + 3 * 60 * 60 * 1000);
+                        var y = mskDate.getUTCFullYear();
+                        var mo = String(mskDate.getUTCMonth() + 1).padStart(2, '0');
+                        var d = String(mskDate.getUTCDate()).padStart(2, '0');
+                        value = y + '-' + mo + '-' + d + 'T00:00:00+03:00';
                     }
                 }
 
