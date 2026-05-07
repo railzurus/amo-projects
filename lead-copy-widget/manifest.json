@@ -3,7 +3,7 @@
         "name": "widget.name",
         "description": "widget.description",
         "short_description": "widget.short_description",
-        "version": "1.1.6",
+        "version": "1.4.3",
         "interface_version": 2,
         "init_once": false,
         "locale": ["ru"],
@@ -12,7 +12,43 @@
             "email": "support@example.com"
         }
     },
-    "locations": ["lcard-1", "lcard-0", "ccard-1", "comcard-1", "tlist-1", "everywhere"],
+    "locations": ["lcard-1", "lcard-0", "ccard-1", "comcard-1", "tlist-1", "digital_pipeline", "everywhere"],
+    "dp": {
+        "action_multiple": false,
+        "webhook_url": "https://d5dl6a5m1h8omcbvg7d5.nkhmighe.apigw.yandexcloud.net/webhook",
+        "settings": {
+            "access_token": {
+                "name": "dp.access_token",
+                "type": "pass",
+                "required": false
+            },
+            "target_pipeline_id": {
+                "name": "dp.target_pipeline_id",
+                "type": "text",
+                "required": false
+            },
+            "target_status_id": {
+                "name": "dp.target_status_id",
+                "type": "text",
+                "required": false
+            },
+            "name_template": {
+                "name": "dp.name_template",
+                "type": "text",
+                "required": false
+            },
+            "copy_history": {
+                "name": "dp.copy_history",
+                "type": "text",
+                "required": false
+            },
+            "fields_csv": {
+                "name": "dp.fields_csv",
+                "type": "text",
+                "required": false
+            }
+        }
+    },
     "tour": {
         "is_tour": true,
         "tour_images": {
@@ -21,8 +57,33 @@
         "tour_description": "widget.tour_description"
     },
     "settings": {
-        "info": {
-            "name": "settings.info",
+        "access_token": {
+            "name": "settings.access_token",
+            "type": "pass",
+            "required": true
+        },
+        "target_pipeline_id": {
+            "name": "settings.target_pipeline_id",
+            "type": "text",
+            "required": false
+        },
+        "target_status_id": {
+            "name": "settings.target_status_id",
+            "type": "text",
+            "required": false
+        },
+        "name_template": {
+            "name": "settings.name_template",
+            "type": "text",
+            "required": false
+        },
+        "copy_history": {
+            "name": "settings.copy_history",
+            "type": "text",
+            "required": false
+        },
+        "fields_csv": {
+            "name": "settings.fields_csv",
             "type": "text",
             "required": false
         }

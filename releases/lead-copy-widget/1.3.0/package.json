@@ -1,0 +1,6 @@
+{
+  "name": "lead-copy-webhook",
+  "version": "1.0.0",
+  "description": "Webhook for Digital Pipeline — Copy lead",
+  "main": "index.js"
+}
