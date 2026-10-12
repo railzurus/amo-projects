@@ -67,7 +67,8 @@ releases/
 ## Серверная инфраструктура
 
 Серверная часть виджетов работает на VPS (`infra/`, Docker Compose), а не в Yandex Cloud Functions:
-- Caddy на `api.zurus.tech`, сервисы по префиксу пути: `/ati/*` → `ati-proxy` (`city-autocomplete-widget/server/`)
+- Caddy на `api.zurus.tech`, сервисы по префиксу пути: `/ati/*` → `ati-proxy`, `/atp/*` → `atp-webhook`, `/lead-copy/*` → `lead-copy-webhook`
+- Функции виджетов (`*/yandex-proxy/`, `*/yandex-cloud/`) — в формате Yandex Cloud Functions, запускаются без изменений общим образом `infra/runtime/` (`HANDLERS_SRC` + `ROUTES`). Адреса вебхуков в `manifest.json` → `https://api.zurus.tech/<сервис>/webhook`
 - Каждый сервис — отдельный контейнер, слушает `PORT`, пишет JSON-логи в stdout с `request_id` из `X-Request-Id`
 - PostgreSQL и бэкапы — профиль `db`, база только во внутренней сети
 - Новый сервис: блок в `infra/docker-compose.yml` + `handle_path` в `infra/caddy/Caddyfile`. Подробно — `infra/README.md`

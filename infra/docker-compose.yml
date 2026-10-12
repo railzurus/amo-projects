@@ -33,15 +33,51 @@ services:
     logging: *logging
 
   # ---------- Сервисы ----------
-  # api.zurus.tech/ati/* — CORS-прокси к ATI.SU и вебхук Digital Pipeline
+  # Функции виджетов в формате Yandex Cloud Functions на общем образе infra/runtime:
+  # HANDLERS_SRC — папка с обработчиками, ROUTES — какой файл обслуживает какой путь.
+
+  # api.zurus.tech/ati/* — CORS-прокси к ATI.SU и вебхук Digital Pipeline (city-autocomplete-widget)
   ati-proxy:
     build:
-      context: ../city-autocomplete-widget
-      dockerfile: server/Dockerfile
+      context: ..
+      dockerfile: infra/runtime/Dockerfile
+      args:
+        HANDLERS_SRC: city-autocomplete-widget/yandex-proxy
     restart: unless-stopped
     env_file: env/ati-proxy.env
     environment:
       SERVICE_NAME: ati-proxy
+      ROUTES: /webhook=webhook.js,*=index.js
+    networks: [web]
+    logging: *logging
+
+  # api.zurus.tech/atp/webhook — пересчёт даты платежа (atp-recalculate-widget, Digital Pipeline)
+  atp-webhook:
+    build:
+      context: ..
+      dockerfile: infra/runtime/Dockerfile
+      args:
+        HANDLERS_SRC: atp-recalculate-widget/yandex-cloud
+    restart: unless-stopped
+    env_file: env/atp-webhook.env
+    environment:
+      SERVICE_NAME: atp-webhook
+      ROUTES: "*=index.js"
+    networks: [web]
+    logging: *logging
+
+  # api.zurus.tech/lead-copy/webhook — копирование сделки (lead-copy-widget, Digital Pipeline).
+  # Секретов на сервере нет: токен и настройки приходят от amoCRM в теле запроса.
+  lead-copy-webhook:
+    build:
+      context: ..
+      dockerfile: infra/runtime/Dockerfile
+      args:
+        HANDLERS_SRC: lead-copy-widget/yandex-cloud
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: lead-copy-webhook
+      ROUTES: "*=index.js"
     networks: [web]
     logging: *logging
 

@@ -22,9 +22,19 @@
 		import service ati-proxy:8080
 	}
 
+	# Пересчёт АТП: вебхук Digital Pipeline
+	handle_path /atp/* {
+		import service atp-webhook:8080
+	}
+
+	# Копирование сделок: вебхук Digital Pipeline
+	handle_path /lead-copy/* {
+		import service lead-copy-webhook:8080
+	}
+
 	# Новые сервисы добавлять по образцу:
-	# handle_path /lead-copy/* {
-	# 	import service lead-copy:8080
+	# handle_path /<сервис>/* {
+	# 	import service <контейнер>:8080
 	# }
 
 	# Просмотр логов контейнеров (Dozzle) — под паролем

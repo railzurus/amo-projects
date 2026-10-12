@@ -8,7 +8,7 @@ cd "$(dirname "$0")"
 [ -t 0 ] || { echo "Нужен терминал: запускайте через ssh -t" >&2; exit 1; }
 trap 'stty echo 2>/dev/null' EXIT INT TERM
 
-for f in .env env/ati-proxy.env; do
+for f in .env env/ati-proxy.env env/atp-webhook.env; do
     [ -f "$f" ] || cp "$f.example" "$f"
     chmod 600 "$f"
 done
@@ -41,6 +41,15 @@ ati_key=$(ask_secret "API-ключ ATI.SU")
 amo_token=$(ask_secret "Долгосрочный токен amoCRM")
 [ -n "$amo_token" ] && set_var env/ati-proxy.env AMOCRM_ACCESS_TOKEN "$amo_token" && echo "  ✓ AMOCRM_ACCESS_TOKEN"
 
+atp_token=$(ask_secret "Токен amoCRM для пересчёта АТП (Enter — тот же, что для ATI)")
+if [ -z "$atp_token" ]; then
+    atp_token=$(grep '^AMOCRM_ACCESS_TOKEN=' env/ati-proxy.env | cut -d= -f2- | tr -d "'")
+    current=$(grep '^AMOCRM_ACCESS_TOKEN=' env/atp-webhook.env | cut -d= -f2- | tr -d "'")
+    # Не затираем уже заданный отдельный токен АТП
+    [ -n "$current" ] && atp_token=""
+fi
+[ -n "$atp_token" ] && set_var env/atp-webhook.env AMOCRM_ACCESS_TOKEN "$atp_token" && echo "  ✓ AMOCRM_ACCESS_TOKEN (АТП)"
+
 logs_pass=$(ask_secret "Пароль для https://api.zurus.tech/logs/")
 if [ -n "$logs_pass" ]; then
     logs_pass2=$(ask_secret "Повторите пароль")
@@ -55,8 +64,8 @@ fi
 
 echo
 echo "== Что заполнено (значения скрыты)"
-for pair in "env/ati-proxy.env ATI_API_KEY" "env/ati-proxy.env AMOCRM_ACCESS_TOKEN" ".env LOGS_PASSWORD_HASH"; do
+for pair in "env/ati-proxy.env ATI_API_KEY" "env/ati-proxy.env AMOCRM_ACCESS_TOKEN" "env/atp-webhook.env AMOCRM_ACCESS_TOKEN" ".env LOGS_PASSWORD_HASH"; do
     set -- $pair
     value=$(grep "^$2=" "$1" | cut -d= -f2- | tr -d "'")
-    case "$value" in ''|*заменить*) echo "  ✗ $2 — пусто" ;; *) echo "  ✓ $2" ;; esac
+    case "$value" in ''|*заменить*) echo "  ✗ $1: $2 — пусто" ;; *) echo "  ✓ $1: $2" ;; esac
 done

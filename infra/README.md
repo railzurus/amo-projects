@@ -5,12 +5,16 @@
 | Путь | Контейнер | Что это |
 |---|---|---|
 | `/ati/*` | `ati-proxy` | CORS-прокси к ATI.SU и вебхук DP (`city-autocomplete-widget`) |
+| `/atp/webhook` | `atp-webhook` | вебхук DP: пересчёт даты платежа (`atp-recalculate-widget`) |
+| `/lead-copy/webhook` | `lead-copy-webhook` | вебхук DP: копирование сделки (`lead-copy-widget`) |
 | `/logs/` | `dozzle` | просмотр логов всех контейнеров, под паролем |
 | `/healthz` | caddy | `ok` — Caddy жив |
 | — | `postgres` | PostgreSQL 18, только во внутренней сети `db` (профиль `db`) |
 | — | `pg-backup` | ночной `pg_dump` всех баз → S3 (профиль `db`) |
 
 Префикс отрезается: запрос `https://api.zurus.tech/ati/v2/cargos` приходит в `ati-proxy` как `/v2/cargos`.
+
+Функции виджетов написаны в формате Yandex Cloud Functions и работают без изменений на общем образе `runtime/`: `server.js` превращает HTTP-запрос в событие Yandex API Gateway. Папка с обработчиками задаётся аргументом сборки `HANDLERS_SRC`, а какой файл обслуживает какой путь — переменной `ROUTES` (`/webhook=webhook.js,*=index.js`).
 
 ## Развёртывание
 
@@ -22,10 +26,8 @@
 
 ```bash
 cd /opt/zurus/infra
-cp .env.example .env
-cp env/ati-proxy.env.example env/ati-proxy.env
-# для профиля db — ещё postgres.env и backup.env
-docker run --rm caddy:2.11-alpine caddy hash-password --plaintext 'пароль'   # → LOGS_PASSWORD_HASH
+./configure.sh   # создаёт .env и env/*.env, спрашивает ключи и пароль к логам (ввод скрыт)
+# для профиля db — ещё env/postgres.env и env/backup.env из шаблонов
 ```
 
 4. Запустить:
@@ -47,7 +49,7 @@ docker compose --profile db up -d --build # с PostgreSQL и бэкапами
 - **Сквозной `request_id`.** Caddy выдаёт каждому запросу UUID, пишет его в свой лог (`request_id`), передаёт сервису в заголовке `X-Request-Id`, сервис ставит его во все свои строки и возвращает клиенту в заголовке ответа `X-Request-Id`. Если менеджер прислал скриншот с ошибкой из DevTools — по этому id находится вся цепочка.
 - **Итоговая строка по каждому запросу** (`"type":"access"`): метод, путь, статус, длительность, IP, Origin. Уровень: `info` — успех, `warn` — 4xx или вебхук не смог отправить заявку в ATI, `error` — 5xx.
 - **При ошибке в лог попадает тело ответа** (поле `response`, до 2000 символов) — ATI в нём объясняет, что не так с заявкой.
-- **Секреты не логируются**: Caddy заменяет `Authorization` на `REDACTED`, сервисы пишут только признак наличия ключа.
+- **Секреты не логируются**: Caddy заменяет `Authorization` на `REDACTED`; `runtime/server.js` маскирует `access_token`, `api_key`, Bearer и JWT во всех строках лога — обработчики пишут тело запроса amoCRM, а в нём бывает токен.
 - **PostgreSQL** логирует запросы дольше 1 с, изменения схемы и ожидания блокировок. **pg-backup** — начало, размер каждого дампа, выгрузку в S3 и `Backup FAILED: …` при сбое.
 
 ### Где смотреть
@@ -109,7 +111,8 @@ docker compose exec pg-backup sh -c 'pg_restore -d <db> --clean --if-exists /bac
 
 ## Добавить новый сервис
 
-1. Dockerfile в папке сервиса; сервис слушает `PORT` (8080) и пишет JSON-логи в stdout (образец — `city-autocomplete-widget/server/server.js`).
-2. В `docker-compose.yml` — блок по образцу `ati-proxy` (`logging: *logging`, сеть `web`, при необходимости `db`), секреты — в `env/<сервис>.env`.
+1. **Функция в формате Яндекса** (`module.exports.handler = async (event) => …`): отдельный Dockerfile не нужен — в `docker-compose.yml` блок по образцу `lead-copy-webhook` с `HANDLERS_SRC` и `ROUTES`, и путь к папке в корневой `.dockerignore`, если он не попадает под шаблоны `*/yandex-proxy/*.js`, `*/yandex-cloud/*.js`.
+   **Другой сервис**: свой Dockerfile; слушает `PORT` (8080), пишет JSON-логи в stdout с `request_id` из `X-Request-Id` (образец — `runtime/server.js`).
+2. В блоке сервиса — `logging: *logging`, сеть `web` (и `db`, если нужна база), секреты — в `env/<сервис>.env`.
 3. В `caddy/Caddyfile` — `handle_path /<сервис>/* { import service <контейнер>:8080 }`.
 4. `docker compose up -d --build`.

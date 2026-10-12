@@ -1,0 +1,5 @@
+# В контекст сборки попадают только сервер и JS-обработчики функций
+*
+!infra/runtime/server.js
+!*/yandex-proxy/*.js
+!*/yandex-cloud/*.js

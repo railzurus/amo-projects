@@ -3,7 +3,7 @@
         "name": "widget.name",
         "description": "widget.description",
         "short_description": "widget.short_description",
-        "version": "1.4.3",
+        "version": "1.4.4",
         "interface_version": 2,
         "init_once": false,
         "locale": ["ru"],
@@ -15,7 +15,7 @@
     "locations": ["lcard-1", "lcard-0", "ccard-1", "comcard-1", "tlist-1", "digital_pipeline", "everywhere"],
     "dp": {
         "action_multiple": false,
-        "webhook_url": "https://d5dl6a5m1h8omcbvg7d5.nkhmighe.apigw.yandexcloud.net/webhook",
+        "webhook_url": "https://api.zurus.tech/lead-copy/webhook",
         "settings": {
             "access_token": {
                 "name": "dp.access_token",
