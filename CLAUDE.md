@@ -46,7 +46,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - `{widgetname}_v{semver}.zip` — архив виджета (файлы на первом уровне)
    - Все сопутствующие файлы для Yandex Cloud (функции, воркеры, API Gateway конфиги и т.д.)
 4. Архив виджета содержит только файлы для amoCRM: `manifest.json`, `script.js`, `style.css`, `i18n/`, `images/`
-5. **ВАЖНО:** НЕ использовать `Compress-Archive` PowerShell — он создаёт пути с обратными слешами (`i18n\ru.json`), amoCRM их не принимает. Собирать ZIP через Node.js или другой инструмент, гарантирующий Unix-слеши (`i18n/ru.json`)
+5. **ВАЖНО:** НЕ использовать `Compress-Archive` PowerShell — он создаёт пути с обратными слешами (`i18n\ru.json`), amoCRM их не принимает. Собирать ZIP скриптом `node scripts/build-widget-zip.js <папка-виджета> <архив.zip>` (без зависимостей, Unix-слеши, только файлы для amoCRM)
 6. Сервер��ые файлы (cloudflare-worker.js, yandex-proxy/) копируются рядом как есть
 
 Пример структуры:

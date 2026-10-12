@@ -3,7 +3,7 @@
         "name": "widget.name",
         "description": "widget.description",
         "short_description": "widget.short_description",
-        "version": "2.2.2",
+        "version": "2.2.3",
         "interface_version": 2,
         "init_once": false,
         "locale": ["ru"],
@@ -15,7 +15,7 @@
     "locations": ["lcard", "lcard-1", "digital_pipeline"],
     "dp": {
         "action_multiple": false,
-        "webhook_url": "https://d5d66g2ffhoktrujginp.lievo6ut.apigw.yandexcloud.net/webhook"
+        "webhook_url": "https://api.zurus.tech/ati/webhook"
     },
     "tour": {
         "is_tour": true,
