@@ -40,6 +40,7 @@ docker compose --profile db up -d --build # с PostgreSQL и бэкапами
 5. Проверить: `curl https://api.zurus.tech/ati/healthz` → `ok`.
 
 Обновление после `git pull`: `docker compose up -d --build` (пересоберёт только изменённое).
+Если менялся `caddy/Caddyfile` — применить без простоя: `docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile`.
 
 ## Логирование
 

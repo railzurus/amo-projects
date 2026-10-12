@@ -26,7 +26,9 @@ services:
       LOGS_USER: ${LOGS_USER}
       LOGS_PASSWORD_HASH: ${LOGS_PASSWORD_HASH}
     volumes:
-      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Папка, а не файл: git pull заменяет Caddyfile новым файлом, и смонтированный
+      # по отдельности файл в контейнере остался бы старым. Применить: caddy reload (см. README)
+      - ./caddy:/etc/caddy:ro
       - caddy_data:/data
       - caddy_config:/config
     networks: [web]
