@@ -1,0 +1,6 @@
+{
+  "name": "atp-recalculate-webhook",
+  "version": "1.0.0",
+  "description": "Webhook for Digital Pipeline - Recalculate payment date",
+  "main": "index.js"
+}

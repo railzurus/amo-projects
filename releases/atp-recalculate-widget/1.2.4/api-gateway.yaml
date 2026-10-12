@@ -1,0 +1,32 @@
+openapi: 3.0.0
+info:
+  title: ATP Recalculate Payment Date
+  version: 1.0.0
+
+# Замените YOUR_FUNCTION_ID на ID созданной функции
+# Замените YOUR_SERVICE_ACCOUNT_ID на ID сервисного аккаунта
+
+paths:
+  /webhook:
+    options:
+      summary: CORS preflight
+      operationId: webhookOptions
+      responses:
+        '200':
+          description: CORS headers
+      x-yc-apigateway-integration:
+        type: dummy
+        content:
+          '*': ''
+        http_code: 200
+        http_headers:
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, POST, OPTIONS'
+          Access-Control-Allow-Headers: 'Content-Type, Authorization'
+
+    post:
+      operationId: webhookPost
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: YOUR_FUNCTION_ID
+        service_account_id: YOUR_SERVICE_ACCOUNT_ID
