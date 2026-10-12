@@ -1,0 +1,108 @@
+# Серверная инфраструктура Zurus: api.zurus.tech
+#
+#   docker compose up -d --build               # Caddy + сервисы + просмотр логов
+#   docker compose --profile db up -d --build  # + PostgreSQL и ночные бэкапы
+#
+# Подробности — README.md рядом.
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"   # ротация: до 5 файлов по 10 МБ на контейнер
+    max-file: "5"
+
+services:
+  # ---------- Входная точка: HTTPS + маршрутизация ----------
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      API_DOMAIN: ${API_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      LOGS_USER: ${LOGS_USER}
+      LOGS_PASSWORD_HASH: ${LOGS_PASSWORD_HASH}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks: [web]
+    logging: *logging
+
+  # ---------- Сервисы ----------
+  # api.zurus.tech/ati/* — CORS-прокси к ATI.SU и вебхук Digital Pipeline
+  ati-proxy:
+    build:
+      context: ../city-autocomplete-widget
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    env_file: env/ati-proxy.env
+    environment:
+      SERVICE_NAME: ati-proxy
+    networks: [web]
+    logging: *logging
+
+  # ---------- Просмотр логов в браузере: api.zurus.tech/logs/ ----------
+  dozzle:
+    image: amir20/dozzle:v11.3
+    restart: unless-stopped
+    environment:
+      DOZZLE_BASE: /logs
+      DOZZLE_NO_ANALYTICS: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks: [web]
+    logging: *logging
+
+  # ---------- База данных (профиль db) ----------
+  postgres:
+    image: postgres:18-alpine
+    profiles: [db]
+    restart: unless-stopped
+    env_file: env/postgres.env
+    command:
+      - postgres
+      - -c
+      - log_min_duration_statement=1000   # запросы дольше 1 с
+      - -c
+      - log_statement=ddl                 # CREATE / ALTER / DROP
+      - -c
+      - log_lock_waits=on
+    volumes:
+      - pg_data:/var/lib/postgresql
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [db]
+    logging: *logging
+
+  pg-backup:
+    build: ./backup
+    profiles: [db]
+    restart: unless-stopped
+    env_file: env/backup.env
+    volumes:
+      - pg_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [db]
+    logging: *logging
+
+# web — всё, что принимает запросы через Caddy.
+# db  — только PostgreSQL и сервисы, которым нужна база (добавлять в обе сети).
+networks:
+  web:
+  db:
+
+volumes:
+  caddy_data:
+  caddy_config:
+  pg_data:
+  pg_backups:

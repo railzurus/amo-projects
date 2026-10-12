@@ -64,6 +64,14 @@ releases/
             └── package-webhook.json
 ```
 
+## Серверная инфраструктура
+
+Серверная часть виджетов работает на VPS (`infra/`, Docker Compose), а не в Yandex Cloud Functions:
+- Caddy на `api.zurus.tech`, сервисы по префиксу пути: `/ati/*` → `ati-proxy` (`city-autocomplete-widget/server/`)
+- Каждый сервис — отдельный контейнер, слушает `PORT`, пишет JSON-логи в stdout с `request_id` из `X-Request-Id`
+- PostgreSQL и бэкапы — профиль `db`, база только во внутренней сети
+- Новый сервис: блок в `infra/docker-compose.yml` + `handle_path` в `infra/caddy/Caddyfile`. Подробно — `infra/README.md`
+
 ## Виджеты — важное
 
 - `interface_version` только `2` (v1 устарел)

@@ -1,0 +1,45 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# Общие настройки проксирования: один request_id на весь путь запроса
+# (лог Caddy → заголовок X-Request-Id → лог сервиса → ответ клиенту)
+(service) {
+	reverse_proxy {args[0]} {
+		header_up X-Request-Id {http.request.uuid}
+	}
+}
+
+{$API_DOMAIN} {
+	log {
+		output stdout
+		format json
+	}
+	log_append request_id {http.request.uuid}
+
+	# ATI.SU: CORS-прокси и вебхук Digital Pipeline (префикс /ati отрезается)
+	handle_path /ati/* {
+		import service ati-proxy:8080
+	}
+
+	# Новые сервисы добавлять по образцу:
+	# handle_path /lead-copy/* {
+	# 	import service lead-copy:8080
+	# }
+
+	# Просмотр логов контейнеров (Dozzle) — под паролем
+	handle /logs* {
+		basic_auth {
+			{$LOGS_USER} {$LOGS_PASSWORD_HASH}
+		}
+		reverse_proxy dozzle:8080
+	}
+
+	handle /healthz {
+		respond "ok" 200
+	}
+
+	handle {
+		respond "Not found" 404
+	}
+}

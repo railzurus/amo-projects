@@ -1,0 +1,46 @@
+#cloud-config
+# Первичная настройка ВМ для infra/ (Ubuntu 24.04).
+# Вставляется в поле «Скрипт cloud_init» при создании ВМ.
+# Docker ставится из репозитория Ubuntu — не зависит от доступности download.docker.com.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose-v2
+  - git
+  - jq
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+
+write_files:
+  # Вход по SSH только по ключу. Файл с префиксом 00- читается раньше 50-cloud-init.conf и имеет приоритет
+  - path: /etc/ssh/sshd_config.d/00-hardening.conf
+    content: |
+      PasswordAuthentication no
+      KbdInteractiveAuthentication no
+      PermitRootLogin no
+
+  # Ротация логов Docker по умолчанию — на случай контейнеров без своих настроек
+  - path: /etc/docker/daemon.json
+    content: |
+      {
+        "log-driver": "json-file",
+        "log-opts": { "max-size": "10m", "max-file": "5" }
+      }
+
+runcmd:
+  - systemctl enable --now docker
+  - usermod -aG docker vm-user
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443
+  - ufw --force enable
+  - systemctl enable --now fail2ban
+  - systemctl restart ssh
+  - mkdir -p /opt/zurus
+  - chown vm-user:vm-user /opt/zurus
