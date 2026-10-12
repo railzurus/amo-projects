@@ -40,7 +40,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 При сборке виджета для деплоя:
 
-1. Версию брать из `manifest.json` → `widget.version`
+1. Версию брать из `manifest.json` → `widget.version`. **Любое изменение — новая версия**: не пересобирать архив под уже выпущенным номером, даже если «его ещё не загружали» — amoCRM не применяет повторную загрузку той же версии (отдаёт закэшированную)
 2. Создать папку `releases/{widgetname}/{version}/`
 3. Положить туда:
    - `{widgetname}_v{semver}.zip` — архив виджета (файлы на первом уровне)
