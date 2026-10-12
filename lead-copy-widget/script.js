@@ -142,7 +142,7 @@ define(['jquery'], function($) {
 
                 // Self-contained menu item: logo header + collapsible body
                 var containerHtml =
-                    '<div id="lead-copy-widget-card-container" style="margin-bottom:15px; border-radius:4px; overflow:hidden;">' +
+                    '<div id="lead-copy-widget-card-container" style="overflow:hidden;">' +
                         '<div id="lead-copy-widget-card-header" style="cursor:pointer; user-select:none; position:relative;">' +
                             '<img src="' + widgetPath + '/images/hor_logo.png?v=' + Date.now() + '" style="display:block; width:100%; height:auto;" alt="Lead Copy Widget">' +
                             '<span class="lead-copy-card-arrow" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-size:12px; color:#000;">▼</span>' +

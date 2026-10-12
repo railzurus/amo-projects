@@ -1163,8 +1163,8 @@ define(['jquery'], function($) {
             var widgetPath = self.params.path || '/upl/' + (self.get_settings().widget_code || '') + '/widget';
 
             var containerHtml =
-                '<div id="' + SHARED_CONTAINER_ID + '" style="margin-bottom:15px; border-radius:4px;">' +
-                    '<div id="zurus-widget-header" style="cursor:pointer; user-select:none; border-radius:4px 4px 0 0; position:relative;">' +
+                '<div id="' + SHARED_CONTAINER_ID + '">' +
+                    '<div id="zurus-widget-header" style="cursor:pointer; user-select:none; position:relative;">' +
                         '<img src="' + widgetPath + '/images/hor_logo.png?v=' + Date.now() + '" style="display:block; width:100%; height:auto;" alt="Татавтотранс">' +
                         '<span class="zurus-widget-arrow" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-size:12px; color:#000;">▼</span>' +
                     '</div>' +
